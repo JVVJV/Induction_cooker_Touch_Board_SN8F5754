@@ -46,7 +46,6 @@ extern unsigned char MainMegCode;
 
 void IIC_Init();
 void I2C_DataCom(void);
-void IIC_Init();
 
 // I2C_RECV
 enum 
@@ -73,14 +72,6 @@ enum
 
 
 #endif
-
-
-
-
-
-
-
-
 
 
 

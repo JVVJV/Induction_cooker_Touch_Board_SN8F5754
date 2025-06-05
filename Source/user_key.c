@@ -54,7 +54,7 @@ bit	Enc1 = 0;
 
 uint8_t tm_keychat = 0;										  //按键消抖	
 uint16_t tm_keylong = 0;										//按键长按
-uint8_t tm_keydelay = 0;										//旋钮延时
+volatile uint8_t tm_keydelay = 0;										//旋钮延时
 #define L_TM_KEYCHAT				100				//100*1ms
 #define L_TM_KEYLONG				2000			//x*500us
 #define L_TM_KEYDELAY				60				//80*1ms

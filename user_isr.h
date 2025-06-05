@@ -15,9 +15,9 @@ typedef struct{
 							count1h;		
 }IntGnd_s;	
 
-extern idata IntGnd_s IntGnd; 
+extern volatile IntGnd_s IntGnd; 
 
 extern unsigned char set_time;
-extern unsigned char tm_keydelay;
+extern volatile unsigned char tm_keydelay;
 
 #endif

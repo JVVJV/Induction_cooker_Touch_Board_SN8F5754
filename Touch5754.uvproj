@@ -125,7 +125,7 @@
             <Oh166RecLen>16</Oh166RecLen>
           </OPTHX>
           <Simulator>
-            <UseSimulator>0</UseSimulator>
+            <UseSimulator>1</UseSimulator>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
             <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
@@ -137,7 +137,7 @@
             <RestoreSysVw>1</RestoreSysVw>
           </Simulator>
           <Target>
-            <UseTarget>1</UseTarget>
+            <UseTarget>0</UseTarget>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
             <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
@@ -417,14 +417,14 @@
               <FilePath>.\user_app.c</FilePath>
             </File>
             <File>
-              <FileName>uese_display.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\uese_display.c</FilePath>
-            </File>
-            <File>
               <FileName>user_iic.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\user_iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>uesr_display.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\uesr_display.c</FilePath>
             </File>
             <File>
               <FileName>iic.h</FileName>

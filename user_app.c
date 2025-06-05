@@ -14,9 +14,9 @@ unsigned char write=0;
 
 unsigned char keybuf=0;
 
-unsigned char buztime_500msF=0;
+volatile unsigned char buztime_500msF=0;
 
-unsigned char sw=close;
+volatile unsigned char sw=close;
 unsigned char status=0x01;
 unsigned char mode=0;
 unsigned char err_num = 0;
@@ -29,7 +29,7 @@ unsigned char bflag=0;
 unsigned char childLockActive=0;
 
 unsigned char wat_level=4;
-unsigned char time_level=10;
+volatile unsigned char time_level=10;
 
 unsigned char send_wat_tab[]={0x44,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f};
 unsigned int wat_tab[]={200,500,800,1000,1300,1600,1800,2000,2200};
@@ -37,11 +37,11 @@ unsigned int wat_tab[]={200,500,800,1000,1300,1600,1800,2000,2200};
 
 unsigned char disp_time_tab;
 
-unsigned char knob_time=0;
+volatile unsigned char knob_time=0;
 
-unsigned char disp_chan_tm1=2;
-unsigned char disp_chan_tm2=-1;
-unsigned char disp_delay;
+volatile unsigned char disp_chan_tm1=2;
+volatile unsigned char disp_chan_tm2=0xFF;
+volatile unsigned char disp_delay;
 
 unsigned char  temp;
 
@@ -50,33 +50,46 @@ unsigned char fifo_empty(void) {
     return (read == write);
 }
 
-//// Returns 1 if FIFO is full, 0 otherwise
-//unsigned char fifo_full(void) {
-//    unsigned char next = write + 1;
-//    if (next >= KEY_FIFO_SIZE) next = 0;
-//    return (next == read);
-//}
-
+// Function to read data from the FIFO buffer
 unsigned char fiforead(void) 
 {
-  unsigned char Rdata;
-  Rdata = fifobuf[read];
-  read++;
-  if (read >= KEY_FIFO_SIZE) read = 0;
+    unsigned char Rdata;
   
-  return Rdata;
-}
+    Rdata = fifobuf[read];
+    read++;
 
-void fifowrite(unsigned char num)
-{
-   fifobuf[write]=num;
-	 write++;
-	 if(write>=KEY_FIFO_SIZE)
-	 {
-			write=0;
-	 }
+    // Wrap around if the read index reaches the end of the buffer
+    if (read >= KEY_FIFO_SIZE) 
+        read = 0;
+
+    return Rdata;
 }
 			
+// Function to write data to the FIFO buffer
+void fifowrite(unsigned char num)
+{
+    unsigned char next;
+
+    // Calculate the next write index
+    next = write + 1;
+
+    // Wrap around if the next write index reaches the end of the buffer
+    if (next >= KEY_FIFO_SIZE)
+        next = 0;
+
+    // If the buffer is full (next write index equals the read index)
+    if (next == read)
+    {
+        // Move the read index forward to make space (overwrite the oldest data)
+        read++;
+        if (read >= KEY_FIFO_SIZE)
+            read = 0;
+    }
+
+    fifobuf[write] = num;
+    write = next;
+}
+
 void buzzerOn()
 {
 	buzOn;

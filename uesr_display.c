@@ -8,7 +8,7 @@ uint8_t LCDB[LCD_SEG_NUM];
 
 code uint8_t LCD_TabNum[] = {LED_0,LED_1,LED_2,LED_3,LED_4,LED_5,LED_6,LED_7,LED_8,LED_9,LED_E,LED_R,LED_O,LED_N};
 
-unsigned char scan_num=0;
+volatile unsigned char scan_num=0;
 unsigned char bit_number=close_n;
 unsigned char LED_B=0;
 
@@ -51,7 +51,7 @@ void lcd_bit()
       LCDB[2] = 0;
 		  LCDB[3] = 0;	
 		  LCDB[4] = 0x01;	
-		break;		
+		break;	
 		
 		case time_n:
 			LCDB[0] = LCD_TabNum[0];		              // 千位数
@@ -59,13 +59,14 @@ void lcd_bit()
 		  LCDB[1] |= LCD_TabNum[0];   	            // 百位数
 		  LCDB[2] = LCD_TabNum[time_level/10];		  // 十位数
 		  LCDB[3] = LCD_TabNum[time_level%10];	    // 个位数
-      LCDB[4] = 0x01;		
+      LCDB[4] = 0x01;
+    break;
 		
 		case sw_n:
 			if(disp_chan_tm1 == 0)
 			{
 				disp_chan_tm2 = 2;
-				disp_chan_tm1 = -1;
+				disp_chan_tm1 = 0xFF;
 				
 				LCDB[0] = LCD_TabNum[0];		              // 千位数
 				LCDB[1] = 0x80;		                        //  ：
@@ -77,14 +78,14 @@ void lcd_bit()
 			if(disp_chan_tm2 == 0)
 			{
 				disp_chan_tm1 = 2;
-				disp_chan_tm2 = -1;
+				disp_chan_tm2 = 0xFF;
 				
 				LCDB[0] = LCD_TabNum[wat_tab[wat_level]/1000];
 				LCDB[1] = LCD_TabNum[wat_tab[wat_level]/100%10];
 				LCDB[2] = LCD_TabNum[0];
 				LCDB[3] = LCD_TabNum[0];				
-			}		
-			
+			}	
+    break;
 	}
 	
 }

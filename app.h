@@ -40,8 +40,8 @@ extern unsigned char keybuf;
 extern unsigned char read;
 extern unsigned char write;
 
-extern unsigned char sw;
-extern unsigned char buztime_500msF;
+extern volatile unsigned char sw;
+extern volatile unsigned char buztime_500msF;
 extern unsigned char mode;
 extern unsigned char status;
 extern unsigned char err_num;
@@ -50,14 +50,14 @@ extern unsigned char bflag;
 extern unsigned char childLockActive;	
 
 extern unsigned char wat_level;
-extern unsigned char time_level;
+extern volatile unsigned char time_level;
 
 extern unsigned int wat_tab[];
 	
-extern unsigned char knob_time;
-extern unsigned char disp_chan_tm1;
-extern unsigned char disp_chan_tm2;
-extern unsigned char disp_delay;
+extern volatile unsigned char knob_time;
+extern volatile unsigned char disp_chan_tm1;
+extern volatile unsigned char disp_chan_tm2;
+extern volatile unsigned char disp_delay;
 
 void buzzerOff();
 void app();

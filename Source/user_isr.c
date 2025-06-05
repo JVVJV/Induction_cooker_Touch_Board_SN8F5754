@@ -10,15 +10,15 @@
 #include "user_isr.h"
 
 
-idata IntGnd_s IntGnd;
+volatile IntGnd_s IntGnd;
 
-unsigned char set_time;
-unsigned char timebase_500us;
-unsigned char keylong_1ms;
-unsigned char keylong_1msF;
-unsigned int buztime_500ms=1000;
+volatile unsigned char set_time;
+volatile unsigned char timebase_500us;
+volatile unsigned char keylong_1ms;
+volatile unsigned char keylong_1msF;
+volatile unsigned int buztime_500ms=1000;
 
-unsigned char scanT;
+volatile unsigned char scanT;
 
 //--------------------------------------------------------------------------
 //subroutine	: isr_timer0
