@@ -108,19 +108,19 @@ void buzzerOff()
 
 void app()
 {
-	static unsigned char prev_mode = 0;       // 保存进入错误前的模式
-	static unsigned char from_error = 0;      // 标记是否刚从错误恢复 ,
+	static unsigned char prev_mode = 0;
+	static unsigned char from_error = 0;
 
 	buzzerOff();
 
-	// 仅在非恢复场景下从 FIFO 读取 mode
-	if (status == open && !from_error){        // from_error为0表示false，非0为true
+	 // Read mode from FIFO
+	if (status == open && !from_error){
 		if (!fifo_empty()) {
       mode = fiforead();
     }	
   }
 	
-	// 重置恢复标记（确保只生效一次）
+	// clear flag after handling command
 	if (from_error)
 			from_error = 0;
 		
@@ -128,17 +128,12 @@ void app()
 	
 	switch(sw)
 	{	                 
-		case standby://待机状态 
+		case standby:
 			if(status != open && status != lock) {
 			  MainWatCode= 0x00;	
 			}
-      
-//			if( MainMegCode == 0x78 || MainMegCode == 0x74 ){  //HCW** comment
-//				prev_mode = fifobuf[read-1];   // 保存当前模式
-//				status = erro;		
-//			}
-      
-      // Enter error state if (MainMegCode != 0x70)  //HCW** add
+
+      // Enter error state if (MainMegCode != 0x70)
       if (status != erro) {
         if (MainMegCode != 0x70) {
           prev_mode = mode;
@@ -150,43 +145,43 @@ void app()
 
 		  switch(status)
 			{
-			  case open:                   //工作模式		
+			  case open:
 					if(bit_number == 0 || bit_number == 0x05 )
            bit_number = standby_n;
 
 					switch(mode)
 					{
-						case hotpot:              //火锅模式
+						case hotpot:
 							wat_level = 5;
 							bit_number = watt_n;
 						  LED_B = 0x09;
 							MainWatCode = 0x4C;
-							knob_time = 0;          //旋钮调节功能为调节功率							
+							knob_time = 0;
 						break;
 						
-						case cook:                //炒菜模式
+						case cook:
 							wat_level = 6;
 							bit_number = watt_n;
 						  LED_B = 0x11;
 							MainWatCode= 0x4D;			
-							knob_time = 0;          //旋钮调节功能为调节功率							
+							knob_time = 0;
 						break;		
  
-						case boil:                //烧水模式
+						case boil:
 							wat_level = 8;	
 							bit_number = watt_n;
 						  LED_B = 0x05;
 							MainWatCode = 0x4F;	
-							knob_time = 0;          //旋钮调节功能为调节功率
+							knob_time = 0;
 						break;				
 							
-						case timer:               //定时功能
+						case timer:
 							bit_number = time_n;
-              knob_time = 1;          //处于定时状态
+              knob_time = 1;
               disp_delay = 4;
 						break;
 						
-						case adjust:              //调节功率
+						case adjust:
 							bit_number = watt_n;	
 							MainWatCode = send_wat_tab[wat_level];
 						break;
@@ -200,13 +195,13 @@ void app()
 					}
         break;
 
-				case lock:                   //锁定状态
+				case lock:
 					if(bit_number != lock_n)
 					  temp = bit_number;
 					bit_number = lock_n;
 					if( MainMegCode == 0x78 || MainMegCode == 0x74 )
 						status = erro;	
-					if(childLockActive == 0)   //解除锁定
+					if(childLockActive == 0)
 					{
 						status = open;
             bit_number = temp;
@@ -214,14 +209,14 @@ void app()
 					fifowrite(0x00);
 				break;			
 
-				case erro:                   //错误状态
+				case erro:
 					bit_number = Ero_n;
 					if( MainMegCode == 0x70 )
 					{			
 						err_num = 0;
-            status = open;      // 退出错误状态
-						mode = prev_mode;   // 恢复之前的模式
-						from_error = 1;     // 标记为“刚从错误恢复”															
+            status = open;      // exit error state
+            mode = prev_mode;   // restore previous mode
+            from_error = 1;     // mark return from error          
 					}						
 				break;	
 					
@@ -229,7 +224,7 @@ void app()
 		break;			
 		
 			
-		case close:                   //关机状态
+		case close:                  // power off state
 			bit_number = close_n;
 		  knob_time = 0;
 		  from_error = 0; 

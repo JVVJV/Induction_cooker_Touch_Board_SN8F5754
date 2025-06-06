@@ -50,14 +50,13 @@ uint8_t EncChk = 0;
 uint8_t EncOld = 0;
 bit	Enc1 = 0;
 
+uint8_t tm_keychat = 0;             // debounce counter
+uint16_t tm_keylong = 0;            // long press counter
+volatile uint8_t tm_keydelay = 0;   // encoder delay counter
 
-
-uint8_t tm_keychat = 0;										  //按键消抖	
-uint16_t tm_keylong = 0;										//按键长按
-volatile uint8_t tm_keydelay = 0;										//旋钮延时
-#define L_TM_KEYCHAT				100				//100*1ms
-#define L_TM_KEYLONG				2000			//x*500us
-#define L_TM_KEYDELAY				60				//80*1ms
+#define L_TM_KEYCHAT     100        // 100 * 1ms
+#define L_TM_KEYLONG     2000       // x * 500us
+#define L_TM_KEYDELAY    60         // 80 * 1ms
 
 //--------------------------------------------------------------------------
 //Subroutine: touch_key_cvt
@@ -108,7 +107,7 @@ void touch_key_cvt(void)
 		
 		if(key_inbuf & KEY_NUM1)				
 		{
-			if(key_cvtbuf & KEY_NUM1)			// 按键1
+			if(key_cvtbuf & KEY_NUM1)			// button 1
 			{			
 			}
 			else
@@ -120,7 +119,7 @@ void touch_key_cvt(void)
 		
 		if(key_inbuf & KEY_NUM2)				
 		{
-			if(key_cvtbuf & KEY_NUM2)			// 按键2
+			if(key_cvtbuf & KEY_NUM2)			// button 2
 			{
 				if(sw==0xFF)
 				{
@@ -133,7 +132,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM3)				
 		{
-			if(key_cvtbuf & KEY_NUM3)			// 按键3
+			if(key_cvtbuf & KEY_NUM3)			// button 3
 			{
 				if(sw==0xFF)
 				{
@@ -146,7 +145,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM4)				
 		{
-			if(key_cvtbuf & KEY_NUM4)			// 按键4
+			if(key_cvtbuf & KEY_NUM4)			// button 4
 			{
 				if(sw==0xFF)
 				{
@@ -159,7 +158,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM5)				
 		{
-			if(key_cvtbuf & KEY_NUM5)			// 按键5
+			if(key_cvtbuf & KEY_NUM5)			// button 5
 			{		
 				if(sw==0xFF)
 				{
@@ -172,7 +171,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM6)				
 		{
-			if(key_cvtbuf & KEY_NUM6)			// 按键6
+			if(key_cvtbuf & KEY_NUM6)			// button 6
 			{
 				Keylong = DEV_KEY_LONG;
 			}
@@ -206,17 +205,17 @@ void touch_key_cvt(void)
 	 }
 	
 	 
-//-----旋钮--------------------------------------------------	
+//----- encoder process --------------------------------------------------	
 	
 	EncNow = 0;			
 
-	// 正转				反转
-	// A	B				A	 B	
-	// 1	1				1	 1
-	// 1	0				0  1
-	// 0	0				0	 0
-	// 0	1				1	 0
-	// 1	1				1  1
+	// Encoder state reference
+  // A    B           A    B
+  // 1    1           1    1
+  // 1    0           0    1
+  // 0    0           0    0
+  // 0    1           1    0
+  // 1    1           1    1
 	
 	if(!I_KEY_L2)		EncNow |= 0x01;
 	if(!I_KEY_L1)		EncNow |= 0x02;
@@ -225,17 +224,17 @@ void touch_key_cvt(void)
 	{
 		return;
 	}	
-	if(tm_keydelay != 0)			//旋转延时
+	if(tm_keydelay != 0)			// delay in progress
 	{
 		return;
 	}
 	
-	// 00 -> 01 、 11 -> 10   正向旋转判断 
+	// 00 -> 01 or 11 -> 10 rotation check
 	if(EncNow == 0x01 && EncOld == 0x00 || EncNow == 0x02 && EncOld == 0x03 )
 	{
 		EncChk = EncNow;
 	}	
-	// 00 -> 01 -> 11   、 11 -> 10 -> 00  正向旋转确定
+	// 00 -> 01 -> 11 or 11 -> 10 -> 00 clockwise confirmed
 	if(EncNow == 0x03 && EncOld == 0x00 && EncChk == 0x01 || EncNow == 0x00 && EncOld == 0x03 && EncChk == 0x02 )
 	{
 		EncOld = EncNow;
@@ -244,7 +243,7 @@ void touch_key_cvt(void)
 		if(Enc1 == 1)
 		{
 			Enc1 =0;
-			tm_keydelay = L_TM_KEYDELAY; 		//延时
+			tm_keydelay = L_TM_KEYDELAY; 		// start delay
 //----------------------------
 			
 			if(status == open)
@@ -253,13 +252,13 @@ void touch_key_cvt(void)
 			 {
 				fifowrite(0x07);
 				if(wat_level<8)
-					wat_level++;  // 升档
+					wat_level++;  // increase power level
 			 }					
 			 if(knob_time)
 			 {
 				fifowrite(0x05);					 
 				if(time_level<60)
-					time_level++; // 升档			 
+					time_level++; // increase timer
 			 }				
 			}
 //----------------------------
@@ -270,12 +269,12 @@ void touch_key_cvt(void)
 		}
 	}
 		
-	// 00 -> 10 、 11 -> 01   反向旋转判断 
+	// 00 -> 10 or 11 -> 01 rotation check
 	if(EncNow == 0x02 && EncOld == 0x00 || EncNow == 0x01 && EncOld == 0x03 )
 	{
 		EncChk = EncNow;
 	}
-	// 00 -> 10 -> 11  、 11 -> 01 -> 00  反向旋转确定
+	// 00 -> 10 -> 11 or 11 -> 01 -> 00 counter-clockwise confirmed
 	if(EncNow == 0x03 && EncOld == 0x00 && EncChk == 0x02 || EncNow == 0x00 && EncOld == 0x03 && EncChk == 0x01 )
 	{
 		EncOld = EncNow;
@@ -284,7 +283,7 @@ void touch_key_cvt(void)
 		if(Enc1 == 1)
 		{
 			Enc1 =0;
-			tm_keydelay = L_TM_KEYDELAY; 		//延时
+			tm_keydelay = L_TM_KEYDELAY; 		// start delay
 //----------------------------
 			
 			if(status == open)
@@ -293,13 +292,13 @@ void touch_key_cvt(void)
 			 {
 				fifowrite(0x07);
 				if(wat_level>=1)
-					wat_level--;  // 降档
+					wat_level--;  // decrease power level
 			 }					
 			 if(knob_time)
 			 {
 				fifowrite(0x05);
 				if(time_level>=1)
-					time_level--; // 降档				 
+					time_level--; // decrease timer	
 			 }
 			}
 //----------------------------
@@ -314,8 +313,3 @@ void touch_key_cvt(void)
 	 
 	 
 }	
-
-	
-
-	
-
