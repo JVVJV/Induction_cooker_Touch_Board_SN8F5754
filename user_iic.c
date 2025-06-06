@@ -5,13 +5,13 @@
 #include "sonix_user.h"
 
 //Master
-unsigned char MasterBuf[I2C_MasterMax] = {0};
-unsigned char	fI2c_RecvOk  = 0;
-unsigned char MasterBufLen = 0;
+volatile unsigned char MasterBuf[I2C_MasterMax] = {0};
+volatile unsigned char	fI2c_RecvOk  = 0;
+volatile unsigned char MasterBufLen = 0;
 
 //Slave
-unsigned char SlaveBuf[I2C_SlaveMax] = {0};
-unsigned char SlaveBufLen  = 0;
+volatile unsigned char SlaveBuf[I2C_SlaveMax] = {0};
+volatile unsigned char SlaveBufLen  = 0;
 
 //App
 unsigned char MainTemCode;

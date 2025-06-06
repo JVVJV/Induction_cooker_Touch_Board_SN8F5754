@@ -12,7 +12,7 @@ unsigned char fifobuf[KEY_FIFO_SIZE];
 unsigned char read=0;
 unsigned char write=0;
 
-unsigned char keybuf=0;
+//unsigned char keybuf=0;
 
 volatile unsigned char buztime_500msF=0;
 
@@ -24,7 +24,7 @@ unsigned char err_num = 0;
 
 unsigned char set_watt;
 
-unsigned char bflag=0;
+//unsigned char bflag=0;
 
 unsigned char childLockActive=0;
 
@@ -35,13 +35,13 @@ unsigned char send_wat_tab[]={0x44,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f};
 unsigned int wat_tab[]={200,500,800,1000,1300,1600,1800,2000,2200};
 
 
-unsigned char disp_time_tab;
+//unsigned char disp_time_tab;
 
 volatile unsigned char knob_time=0;
 
 volatile unsigned char disp_chan_tm1=2;
 volatile unsigned char disp_chan_tm2=0xFF;
-volatile unsigned char disp_delay;
+volatile unsigned char disp_delay = 0;
 
 unsigned char  temp;
 
@@ -101,7 +101,7 @@ void buzzerOff()
 	if(buztime_500msF==0)
 	{
     buzOff;
-		bflag=0;
+//		bflag=0;
 	}
 }
 

@@ -41,7 +41,7 @@ uint8_t	key_chkbuf;
 uint8_t	key_cvtbuf;
 uint8_t	key_oldbuf;
 uint8_t	key_debunc;
-uint8_t	key_long_step;
+//uint8_t	key_long_step;
 uint16_t	Keylong;
 
 
@@ -51,11 +51,11 @@ uint8_t EncOld = 0;
 bit	Enc1 = 0;
 
 uint8_t tm_keychat = 0;             // debounce counter
-uint16_t tm_keylong = 0;            // long press counter
+//uint16_t tm_keylong = 0;            // long press counter
 volatile uint8_t tm_keydelay = 0;   // encoder delay counter
 
 #define L_TM_KEYCHAT     100        // 100 * 1ms
-#define L_TM_KEYLONG     2000       // x * 500us
+//#define L_TM_KEYLONG     2000       // x * 500us
 #define L_TM_KEYDELAY    60         // 80 * 1ms
 
 //--------------------------------------------------------------------------

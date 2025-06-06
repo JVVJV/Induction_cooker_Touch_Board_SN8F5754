@@ -35,7 +35,7 @@ extern unsigned char keylong_1ms;
 extern unsigned char keylong_1msF;
 
 extern unsigned char fifobuf[KEY_FIFO_SIZE];
-extern unsigned char keybuf;
+//extern unsigned char keybuf;
 
 extern unsigned char read;
 extern unsigned char write;
@@ -46,7 +46,7 @@ extern unsigned char mode;
 extern unsigned char status;
 extern unsigned char err_num;
 
-extern unsigned char bflag;
+//extern unsigned char bflag;
 extern unsigned char childLockActive;	
 
 extern unsigned char wat_level;
