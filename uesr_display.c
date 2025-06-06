@@ -53,26 +53,26 @@ void lcd_bit()
 		  LCDB[4] = 0x01;	
 		break;	
 		
-		case time_n:
-			LCDB[0] = LCD_TabNum[0];		              // 千位数
-	   	LCDB[1] = 0x80;		                        //  ：
-		  LCDB[1] |= LCD_TabNum[0];   	            // 百位数
-		  LCDB[2] = LCD_TabNum[time_level/10];		  // 十位数
-		  LCDB[3] = LCD_TabNum[time_level%10];	    // 个位数
-      LCDB[4] = 0x01;
+            case time_n:
+                    LCDB[0] = LCD_TabNum[0];            // thousands digit
+                    LCDB[1] = 0x80;                   // hundreds digit with dot
+                    LCDB[1] |= LCD_TabNum[0];           // hundreds digit value
+                    LCDB[2] = LCD_TabNum[time_level/10]; // tens digit
+                    LCDB[3] = LCD_TabNum[time_level%10];  // ones digit
+        LCDB[4] = 0x01;
     break;
 		
-		case sw_n:
+            case sw_n:
 			if(disp_chan_tm1 == 0)
 			{
 				disp_chan_tm2 = 2;
 				disp_chan_tm1 = 0xFF;
 				
-				LCDB[0] = LCD_TabNum[0];		              // 千位数
-				LCDB[1] = 0x80;		                        //  ：
-				LCDB[1] |= LCD_TabNum[0];   	            // 百位数
-				LCDB[2] = LCD_TabNum[time_level/10];		  // 十位数
-				LCDB[3] = LCD_TabNum[time_level%10];	    // 个位数				
+                            LCDB[0] = LCD_TabNum[0];            // thousands digit
+                            LCDB[1] = 0x80;                   // hundreds digit with dot
+                            LCDB[1] |= LCD_TabNum[0];           // hundreds digit value
+                            LCDB[2] = LCD_TabNum[time_level/10]; // tens digit
+                            LCDB[3] = LCD_TabNum[time_level%10];        // ones digit
 			}
 		
 			if(disp_chan_tm2 == 0)
@@ -149,7 +149,7 @@ void display()
 				COM4_OUT_LOW;
 		break;	
 		
-		case 4:                    //模式标记
+		case 4:                    // mode bits
 
 		    if(LCDB[4] & 0x01)	        {LED_SEGA_HIGH;}		// COM5			
 				if(LCDB[4] & 0x02)	        {LED_SEGB_HIGH;}

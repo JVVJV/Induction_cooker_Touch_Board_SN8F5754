@@ -108,19 +108,19 @@ void buzzerOff()
 
 void app()
 {
-	static unsigned char prev_mode = 0;       // ±£´æ½øÈë´íÎóÇ°µÄÄ£Ê½
-	static unsigned char from_error = 0;      // ±ê¼ÇÊÇ·ñ¸Õ´Ó´íÎó»Ö¸´ ,
+    static unsigned char prev_mode = 0;       // previous mode
+    static unsigned char from_error = 0;      // return from error flag
 
 	buzzerOff();
 
-	// ½öÔÚ·Ç»Ö¸´³¡¾°ÏÂ´Ó FIFO ¶ÁÈ¡ mode
-	if (status == open && !from_error){        // from_errorÎª0±íÊ¾false£¬·Ç0Îªtrue
+    // Read mode from FIFO
+    if (status == open && !from_error){        // from_error=0 means false
 		if (!fifo_empty()) {
       mode = fiforead();
     }	
   }
 	
-	// ÖØÖÃ»Ö¸´±ê¼Ç£¨È·±£Ö»ÉúĞ§Ò»´Î£©
+    // clear flag after handling command
 	if (from_error)
 			from_error = 0;
 		
@@ -128,65 +128,61 @@ void app()
 	
 	switch(sw)
 	{	                 
-		case standby://´ı»ú×´Ì¬ 
+		case standby:// standby state×´Ì¬ 
 			if(status != open && status != lock) {
 			  MainWatCode= 0x00;	
 			}
       
 //			if( MainMegCode == 0x78 || MainMegCode == 0x74 ){  //HCW** comment
-//				prev_mode = fifobuf[read-1];   // ±£´æµ±Ç°Ä£Ê½
-//				status = erro;		
-//			}
-      
-      // Enter error state if (MainMegCode != 0x70)  //HCW** add
-      if (status != erro) {
-        if (MainMegCode != 0x70) {
-          prev_mode = mode;
-          err_num = (MainMegCode - 0x70);
-          status = erro;
-          buzzerOn(); // Beep once time when error occurs
-        }
-      }
-
-		  switch(status)
-			{
-			  case open:                   //¹¤×÷Ä£Ê½		
-					if(bit_number == 0 || bit_number == 0x05 )
-           bit_number = standby_n;
-
-					switch(mode)
-					{
-						case hotpot:              //»ğ¹øÄ£Ê½
-							wat_level = 5;
-							bit_number = watt_n;
-						  LED_B = 0x09;
-							MainWatCode = 0x4C;
-							knob_time = 0;          //ĞıÅ¥µ÷½Ú¹¦ÄÜÎªµ÷½Ú¹¦ÂÊ							
+			  case open:                   // mode openÄ£Ê½		
+						case hotpot:              // hotpot modeÄ£Ê½
+							knob_time = 0;          // reset knob for powerÅ¥Ú¹ÎªÚ¹							
+							knob_time = 0;          // reset knob for powerÅ¥Ú¹ÎªÚ¹							
+						case boil:                // boil modeË®Ä£Ê½
+							knob_time = 0;          // reset knob for powerÅ¥Ú¹ÎªÚ¹
+						case timer:               // timer modeÊ±
+              knob_time = 1;          // enter timer settingÚ¶Ê±×´Ì¬
+						case adjust:              // power adjust modeÚ¹
+                                    case lock:                   // lock state
+					if(childLockActive == 0)   // unlock when child lock cleared
+                                    case erro:                   // error state
+            status = open;      // exit error state
+            mode = prev_mode;   // restore previous mode
+            from_error = 1;     // mark return from error
+                case close:                   // power off state
+                        bit_number = close_n;
+                        knob_time = 0;
+                        from_error = 0;
+                        MainWatCode= 0x00;
+                        status = open;
+                        mode=0;
+                        break;
+							knob_time = 0;          //æ—‹é’®è°ƒèŠ‚åŠŸèƒ½ä¸ºè°ƒèŠ‚åŠŸç‡							
 						break;
 						
-						case cook:                //³´²ËÄ£Ê½
+						case cook:                //ç‚’èœæ¨¡å¼
 							wat_level = 6;
 							bit_number = watt_n;
 						  LED_B = 0x11;
 							MainWatCode= 0x4D;			
-							knob_time = 0;          //ĞıÅ¥µ÷½Ú¹¦ÄÜÎªµ÷½Ú¹¦ÂÊ							
+							knob_time = 0;          //æ—‹é’®è°ƒèŠ‚åŠŸèƒ½ä¸ºè°ƒèŠ‚åŠŸç‡							
 						break;		
  
-						case boil:                //ÉÕË®Ä£Ê½
+						case boil:                //çƒ§æ°´æ¨¡å¼
 							wat_level = 8;	
 							bit_number = watt_n;
 						  LED_B = 0x05;
 							MainWatCode = 0x4F;	
-							knob_time = 0;          //ĞıÅ¥µ÷½Ú¹¦ÄÜÎªµ÷½Ú¹¦ÂÊ
+							knob_time = 0;          //æ—‹é’®è°ƒèŠ‚åŠŸèƒ½ä¸ºè°ƒèŠ‚åŠŸç‡
 						break;				
 							
-						case timer:               //¶¨Ê±¹¦ÄÜ
+						case timer:               //å®šæ—¶åŠŸèƒ½
 							bit_number = time_n;
-              knob_time = 1;          //´¦ÓÚ¶¨Ê±×´Ì¬
+              knob_time = 1;          //å¤„äºå®šæ—¶çŠ¶æ€
               disp_delay = 4;
 						break;
 						
-						case adjust:              //µ÷½Ú¹¦ÂÊ
+						case adjust:              //è°ƒèŠ‚åŠŸç‡
 							bit_number = watt_n;	
 							MainWatCode = send_wat_tab[wat_level];
 						break;
@@ -200,13 +196,13 @@ void app()
 					}
         break;
 
-				case lock:                   //Ëø¶¨×´Ì¬
+				case lock:                   //é”å®šçŠ¶æ€
 					if(bit_number != lock_n)
 					  temp = bit_number;
 					bit_number = lock_n;
 					if( MainMegCode == 0x78 || MainMegCode == 0x74 )
 						status = erro;	
-					if(childLockActive == 0)   //½â³ıËø¶¨
+					if(childLockActive == 0)   //è§£é™¤é”å®š
 					{
 						status = open;
             bit_number = temp;
@@ -214,14 +210,14 @@ void app()
 					fifowrite(0x00);
 				break;			
 
-				case erro:                   //´íÎó×´Ì¬
+				case erro:                   //é”™è¯¯çŠ¶æ€
 					bit_number = Ero_n;
 					if( MainMegCode == 0x70 )
 					{			
 						err_num = 0;
-            status = open;      // ÍË³ö´íÎó×´Ì¬
-						mode = prev_mode;   // »Ö¸´Ö®Ç°µÄÄ£Ê½
-						from_error = 1;     // ±ê¼ÇÎª¡°¸Õ´Ó´íÎó»Ö¸´¡±															
+            status = open;      // é€€å‡ºé”™è¯¯çŠ¶æ€
+						mode = prev_mode;   // æ¢å¤ä¹‹å‰çš„æ¨¡å¼
+						from_error = 1;     // æ ‡è®°ä¸ºâ€œåˆšä»é”™è¯¯æ¢å¤â€															
 					}						
 				break;	
 					
@@ -229,7 +225,7 @@ void app()
 		break;			
 		
 			
-		case close:                   //¹Ø»ú×´Ì¬
+		case close:                   //å…³æœºçŠ¶æ€
 			bit_number = close_n;
 		  knob_time = 0;
 		  from_error = 0; 
