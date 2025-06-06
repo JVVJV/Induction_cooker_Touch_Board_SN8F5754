@@ -82,7 +82,7 @@ void isr_timer1(void) interrupt ISRTimer1
 					{
 						if(--time_level==0)
 							{
-								sw = close;										
+								sw = APP_STATE_CLOSE;
 							}						
 					}
 

@@ -112,7 +112,8 @@ void touch_key_cvt(void)
 			}
 			else
 			{
-	      sw=~sw;          //power on	
+	      //power state switch
+        sw = (sw == APP_STATE_STANDBY) ? APP_STATE_CLOSE : APP_STATE_STANDBY;
 				buzzerOn();	
 			}
 		}			
@@ -121,7 +122,7 @@ void touch_key_cvt(void)
 		{
 			if(key_cvtbuf & KEY_NUM2)			// button 2
 			{
-				if(sw==0xFF)
+				if(sw==APP_STATE_STANDBY)
 				{
 					if(status!=erro)
 						buzzerOn();
@@ -134,7 +135,7 @@ void touch_key_cvt(void)
 		{
 			if(key_cvtbuf & KEY_NUM3)			// button 3
 			{
-				if(sw==0xFF)
+				if(sw==APP_STATE_STANDBY)
 				{
 					if(status!=erro)
 						buzzerOn();
@@ -147,7 +148,7 @@ void touch_key_cvt(void)
 		{
 			if(key_cvtbuf & KEY_NUM4)			// button 4
 			{
-				if(sw==0xFF)
+				if(sw==APP_STATE_STANDBY)
 				{
 					if(status!=erro)
 						buzzerOn();
@@ -160,7 +161,7 @@ void touch_key_cvt(void)
 		{
 			if(key_cvtbuf & KEY_NUM5)			// button 5
 			{		
-				if(sw==0xFF)
+				if(sw==APP_STATE_STANDBY)
 				{
 					if(status!=erro)
 						buzzerOn();
@@ -196,8 +197,9 @@ void touch_key_cvt(void)
 			if(--Keylong == 0)
 			{
 				Keylong = DEV_KEY_CONTI; 	   //³¤°´°´¼ü6
-				if(sw==0xFF)					
+				if(sw==APP_STATE_STANDBY)
 				  buzzerOn();
+        
 				childLockActive = !childLockActive;
 				status=lock;			
 			}

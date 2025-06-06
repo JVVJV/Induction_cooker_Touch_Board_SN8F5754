@@ -16,9 +16,9 @@ unsigned char write=0;
 
 volatile unsigned char buztime_500msF=0;
 
-volatile unsigned char sw=close;
-unsigned char status=0x01;
-unsigned char mode=0;
+volatile AppState sw = APP_STATE_CLOSE;
+unsigned char status = open;
+unsigned char mode = MODE_NOTASK;
 unsigned char err_num = 0;
 
 
@@ -44,6 +44,13 @@ volatile unsigned char disp_chan_tm2=0xFF;
 volatile unsigned char disp_delay = 0;
 
 unsigned char  temp;
+
+static void process_i2c_command(unsigned char *from_error);
+static void handle_open(void);
+static void handle_lock(void);
+static void handle_error(unsigned char *from_error, unsigned char prev_mode);
+static void handle_standby(unsigned char *prev_mode, unsigned char *from_error);
+static void handle_close(unsigned char *from_error);
 
 // Returns 1 if FIFO is empty, 0 otherwise
 unsigned char fifo_empty(void) {
@@ -113,129 +120,22 @@ void app()
 
 	buzzerOff();
 
-	 // Read mode from FIFO
-	if (status == open && !from_error){
-		if (!fifo_empty()) {
-      mode = fiforead();
-    }	
-  }
-	
-	// clear flag after handling command
-	if (from_error)
-			from_error = 0;
-		
+  process_i2c_command(&from_error);
+ 	
   disp_time();
 	
-	switch(sw)
-	{	                 
-		case standby:
-			if(status != open && status != lock) {
-			  MainWatCode= 0x00;	
-			}
+  switch(sw)
+  {
+      case APP_STATE_STANDBY:
+          handle_standby(&prev_mode, &from_error);
+          break;
 
-      // Enter error state if (MainMegCode != 0x70)
-      if (status != erro) {
-        if (MainMegCode != 0x70) {
-          prev_mode = mode;
-          err_num = (MainMegCode - 0x70);
-          status = erro;
-          buzzerOn(); // Beep once time when error occurs
-        }
-      }
+      case APP_STATE_CLOSE:
+      default:
+          handle_close(&from_error);
+          break;
+  }
 
-		  switch(status)
-			{
-			  case open:
-					if(bit_number == 0 || bit_number == 0x05 )
-           bit_number = standby_n;
-
-					switch(mode)
-					{
-						case hotpot:
-							wat_level = 5;
-							bit_number = watt_n;
-						  LED_B = 0x09;
-							MainWatCode = 0x4C;
-							knob_time = 0;
-						break;
-						
-						case cook:
-							wat_level = 6;
-							bit_number = watt_n;
-						  LED_B = 0x11;
-							MainWatCode= 0x4D;			
-							knob_time = 0;
-						break;		
- 
-						case boil:
-							wat_level = 8;	
-							bit_number = watt_n;
-						  LED_B = 0x05;
-							MainWatCode = 0x4F;	
-							knob_time = 0;
-						break;				
-							
-						case timer:
-							bit_number = time_n;
-              knob_time = 1;
-              disp_delay = 4;
-						break;
-						
-						case adjust:
-							bit_number = watt_n;	
-							MainWatCode = send_wat_tab[wat_level];
-						break;
-            
-            case notask:
-							bit_number = standby_n;
-							MainWatCode = 0x00;
-							knob_time = 0;          
-						break;
-            
-					}
-        break;
-
-				case lock:
-					if(bit_number != lock_n)
-					  temp = bit_number;
-					bit_number = lock_n;
-					if( MainMegCode == 0x78 || MainMegCode == 0x74 )
-						status = erro;	
-					if(childLockActive == 0)
-					{
-						status = open;
-            bit_number = temp;
-					}
-					fifowrite(0x00);
-				break;			
-
-				case erro:
-					bit_number = Ero_n;
-					if( MainMegCode == 0x70 )
-					{			
-						err_num = 0;
-            status = open;      // exit error state
-            mode = prev_mode;   // restore previous mode
-            from_error = 1;     // mark return from error          
-					}						
-				break;	
-					
-			}
-		break;			
-		
-			
-		case close:                  // power off state
-			bit_number = close_n;
-		  knob_time = 0;
-		  from_error = 0; 
-			MainWatCode= 0x00;	
-      status = open;	
-		  mode=0;
-		break;
-		
-
-	}
-	
 }
 
 void disp_time()
@@ -249,6 +149,142 @@ void disp_time()
 }
 
 
+static void process_i2c_command(unsigned char *from_error)
+{
+    if (status == open && !(*from_error)) {
+        if (!fifo_empty()) {
+            mode = fiforead();
+        }
+    }
+    if (*from_error) {
+        *from_error = 0;
+    }
+}
 
+static void handle_open(void)
+{
+    if(bit_number == 0 || bit_number == 0x05)
+        bit_number = standby_n;
+
+    switch(mode)
+    {
+      case MODE_HOTPOT:
+        wat_level = 5;
+        bit_number = watt_n;
+        LED_B = 0x09;
+        MainWatCode = CMD_HOTPOT;
+        knob_time = 0;
+      break;
+      
+      case MODE_COOK:
+        wat_level = 6;
+        bit_number = watt_n;
+        LED_B = 0x11;
+        MainWatCode = CMD_COOK;			
+        knob_time = 0;
+      break;		
+
+      case MODE_BOIL:
+        wat_level = 8;	
+        bit_number = watt_n;
+        LED_B = 0x05;
+        MainWatCode = CMD_BOIL;	
+        knob_time = 0;
+      break;				
+        
+      case MODE_TIMER:
+        bit_number = time_n;
+        knob_time = 1;
+        disp_delay = 4;
+      break;
+      
+      case MODE_ADJUST:
+        bit_number = watt_n;	
+        MainWatCode = send_wat_tab[wat_level];
+      break;
+      
+      case MODE_NOTASK:
+      default:
+        bit_number = standby_n;
+        MainWatCode = CMD_NONE;
+        knob_time = 0;          
+      break;
+      
+    }
+}
+
+static void handle_lock(void)
+{
+    if(bit_number != lock_n)
+        temp = bit_number;
+
+    bit_number = lock_n;
+
+    if(MainMegCode == 0x78 || MainMegCode == 0x74)
+        status = erro;
+
+    if(childLockActive == 0)
+    {
+        status = open;
+        bit_number = temp;
+    }
+
+    fifowrite(0x00);
+}
+
+static void handle_error(unsigned char *from_error, unsigned char prev_mode)
+{
+    bit_number = Ero_n;
+  
+    if( MainMegCode == 0x70 )
+    {			
+      err_num = 0;
+      status = open;      // exit error state
+      mode = prev_mode;   // restore previous mode
+      *from_error = 1;    // mark return from error          
+    }
+}
+
+static void handle_standby(unsigned char *prev_mode, unsigned char *from_error)
+{
+    if(status != open && status != lock)
+        MainWatCode = CMD_NONE;
+
+    if(status != erro)
+    {
+        if(MainMegCode != 0x70)
+        {
+            *prev_mode = mode;
+            err_num = (MainMegCode - 0x70);
+            status = erro;
+            buzzerOn(); // Beep once time when error occurs
+        }
+    }
+
+    switch(status)
+    {
+        case open:
+            handle_open();
+            break;
+
+        case lock:
+            handle_lock();
+            break;
+
+        case erro:
+            handle_error(from_error, *prev_mode);
+            break;
+    }
+}
+
+static void handle_close(unsigned char *from_error)
+{
+    bit_number = close_n;
+    knob_time = 0;
+    *from_error = 0;
+    MainWatCode = CMD_NONE;
+    status = open;
+    mode = MODE_NOTASK;
+}
 
 

@@ -7,22 +7,33 @@
 //#define	O_BUZ_ON		 PW1M |= 0x80;													
 //#define	O_BUZ_OFF		PW1M &= ~0X80;
 
-//三层菜单 第一层 开关
-#define close   0x00           
-#define standby 0xFF
+// Three-level menu, First level: Power Switch
+typedef enum {
+    APP_STATE_CLOSE,
+    APP_STATE_STANDBY
+} AppState;
 
-//三层菜单 第二层 状态
+// Three-level menu, Second level: Status
 #define open    0x01
 #define lock    0x08
 #define erro    0x06
 
-//三层菜单 第三层 功能
-#define notask  0x00
-#define hotpot  0x02
-#define cook    0x03
-#define boil    0x04
-#define timer   0x05
-#define adjust  0x07
+// Three-level menu, Third level: Function
+typedef enum {
+    MODE_NOTASK = 0x00,
+    MODE_HOTPOT = 0x02,
+    MODE_COOK   = 0x03,
+    MODE_BOIL   = 0x04,
+    MODE_TIMER  = 0x05,
+    MODE_ADJUST = 0x07
+} WorkMode;
+
+typedef enum {
+    CMD_NONE   = 0x00,
+    CMD_HOTPOT = 0x4C,
+    CMD_COOK   = 0x4D,
+    CMD_BOIL   = 0x4F
+} I2CCommand;
 
 //
 #define plus   0x09
@@ -40,7 +51,7 @@ extern unsigned char fifobuf[KEY_FIFO_SIZE];
 extern unsigned char read;
 extern unsigned char write;
 
-extern volatile unsigned char sw;
+extern volatile AppState sw;
 extern volatile unsigned char buztime_500msF;
 extern unsigned char mode;
 extern unsigned char status;
