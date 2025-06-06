@@ -422,11 +422,6 @@
               <FilePath>.\user_iic.c</FilePath>
             </File>
             <File>
-              <FileName>uesr_display.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\uesr_display.c</FilePath>
-            </File>
-            <File>
               <FileName>iic.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\iic.h</FilePath>
@@ -435,6 +430,11 @@
               <FileName>user_isr.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\user_isr.h</FilePath>
+            </File>
+            <File>
+              <FileName>user_display.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user_display.c</FilePath>
             </File>
           </Files>
         </Group>
