@@ -5,12 +5,12 @@
 #include "sonix_user.h"
 
 //Master
-unsigned char MasterBuf[I2C_MasterMax] = {0};          //存储主机发送来的数据
+unsigned char MasterBuf[I2C_MasterMax] = {0};          // buffer for master data
 unsigned char	fI2c_RecvOk  = 0;
 unsigned char MasterBufLen = 0;
 
 //Slave
-unsigned char SlaveBuf[I2C_SlaveMax] = {0};           //存储从机需要发送的数据
+unsigned char SlaveBuf[I2C_SlaveMax] = {0};           // buffer for slave reply
 unsigned char SlaveBufLen  = 0;
 
 //App
@@ -43,7 +43,7 @@ void I2C_DataCom(void)
 	{
 		fI2c_RecvOk =0;
 		
-		// 从机接收数据 
+                // verify checksum
 		for(i=0,CheckSum=0;i<2;i++)
 		{
 			CheckSum += MasterBuf[i];
@@ -56,13 +56,13 @@ void I2C_DataCom(void)
 		}
 				
 		
-		// 从机发送数据
-		for(i=0,CheckSum=0;i<=1;i++)	// 发送功率参数
+                // prepare reply data
+                for(i=0,CheckSum=0;i<=1;i++)    // two bytes
 		{
 			SlaveBuf[i] = MainWatCode;	
 		}
 
-		for(i=0,CheckSum=0;i<I2C_SlaveCS;i++)		// 发送校验和
+                for(i=0,CheckSum=0;i<I2C_SlaveCS;i++)           // compute checksum
 		{
 			CheckSum += SlaveBuf[i];
 		}
@@ -116,12 +116,12 @@ void isr_i2c_slave (void) interrupt ISRI2c
 			MasterBufLen = 0;	
 			SlaveBufLen = 0;
 			
-			I2CCON &= 0xCF;											  // Clear STA & STOP			
+                    I2CCON &= 0xCF;                                // Clear STA & STOP
 			break;		
 		}		
 	}
 	
-	I2CCON |= 0x04; 													// AA = 1	
-	I2CCON &= 0xF7;        										// Clear SI
+    I2CCON |= 0x04;                                // AA = 1
+    I2CCON &= 0xF7;                                // Clear SI
 }
 

@@ -52,12 +52,12 @@ bit	Enc1 = 0;
 
 
 
-uint8_t tm_keychat = 0;										  //∞¥º¸œ˚∂∂	
-uint16_t tm_keylong = 0;										//∞¥º¸≥§∞¥
-volatile uint8_t tm_keydelay = 0;										//–˝≈•—” ±
-#define L_TM_KEYCHAT				100				//100*1ms
-#define L_TM_KEYLONG				2000			//x*500us
-#define L_TM_KEYDELAY				60				//80*1ms
+uint8_t tm_keychat = 0;             // debounce counter
+uint16_t tm_keylong = 0;            // long press counter
+volatile uint8_t tm_keydelay = 0;   // encoder delay counter
+#define L_TM_KEYCHAT     100        // 100 * 1ms
+#define L_TM_KEYLONG     2000       // x * 500us
+#define L_TM_KEYDELAY    60         // 80 * 1ms
 
 //--------------------------------------------------------------------------
 //Subroutine: touch_key_cvt
@@ -108,7 +108,7 @@ void touch_key_cvt(void)
 		
 		if(key_inbuf & KEY_NUM1)				
 		{
-			if(key_cvtbuf & KEY_NUM1)			// ∞¥º¸1
+			if(key_cvtbuf & KEY_NUM1)			// ÊåâÈîÆ1
 			{			
 			}
 			else
@@ -120,7 +120,7 @@ void touch_key_cvt(void)
 		
 		if(key_inbuf & KEY_NUM2)				
 		{
-			if(key_cvtbuf & KEY_NUM2)			// ∞¥º¸2
+			if(key_cvtbuf & KEY_NUM2)			// ÊåâÈîÆ2
 			{
 				if(sw==0xFF)
 				{
@@ -133,7 +133,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM3)				
 		{
-			if(key_cvtbuf & KEY_NUM3)			// ∞¥º¸3
+			if(key_cvtbuf & KEY_NUM3)			// ÊåâÈîÆ3
 			{
 				if(sw==0xFF)
 				{
@@ -146,7 +146,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM4)				
 		{
-			if(key_cvtbuf & KEY_NUM4)			// ∞¥º¸4
+			if(key_cvtbuf & KEY_NUM4)			// ÊåâÈîÆ4
 			{
 				if(sw==0xFF)
 				{
@@ -159,7 +159,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM5)				
 		{
-			if(key_cvtbuf & KEY_NUM5)			// ∞¥º¸5
+			if(key_cvtbuf & KEY_NUM5)			// ÊåâÈîÆ5
 			{		
 				if(sw==0xFF)
 				{
@@ -172,7 +172,7 @@ void touch_key_cvt(void)
 
 		if(key_inbuf & KEY_NUM6)				
 		{
-			if(key_cvtbuf & KEY_NUM6)			// ∞¥º¸6
+			if(key_cvtbuf & KEY_NUM6)			// ÊåâÈîÆ6
 			{
 				Keylong = DEV_KEY_LONG;
 			}
@@ -196,46 +196,45 @@ void touch_key_cvt(void)
 		{
 			if(--Keylong == 0)
 			{
-				Keylong = DEV_KEY_CONTI; 	   //≥§∞¥∞¥º¸6
-				if(sw==0xFF)					
-				  buzzerOn();
-				childLockActive = !childLockActive;
-				status=lock;			
-			}
-		}
-	 }
+//----- encoder process --------------------------------------------------
+        // Encoder state reference
+        // A    B           A    B
+        // 1    1           1    1
+        // 1    0           0    1
+        // 0    0           0    0
+        // 0    1           1    0
+        // 1    1           1    1
 	
-	 
-//-----–˝≈•--------------------------------------------------	
-	
-	EncNow = 0;			
-
-	// ’˝◊™				∑¥◊™
-	// A	B				A	 B	
-	// 1	1				1	 1
-	// 1	0				0  1
-	// 0	0				0	 0
-	// 0	1				1	 0
-	// 1	1				1  1
-	
-	if(!I_KEY_L2)		EncNow |= 0x01;
-	if(!I_KEY_L1)		EncNow |= 0x02;
-		
-	if(EncNow == EncOld)
-	{
-		return;
-	}	
-	if(tm_keydelay != 0)			//–˝◊™—” ±
-	{
-		return;
-	}
-	
-	// 00 -> 01 °¢ 11 -> 10   ’˝œÚ–˝◊™≈–∂œ 
-	if(EncNow == 0x01 && EncOld == 0x00 || EncNow == 0x02 && EncOld == 0x03 )
+        if(tm_keydelay != 0)                    // delay in progress
+        // 00 -> 01 or 11 -> 10 rotation check
+        // 00 -> 01 -> 11 or 11 -> 10 -> 00 clockwise confirmed
+                        tm_keydelay = L_TM_KEYDELAY;            // start delay
+                fifowrite(0x07);
+                if(wat_level<8)
+                        wat_level++;  // increase power level
+                }
+                if(knob_time)
+                {
+                        fifowrite(0x05);
+                        if(time_level<60)
+                                time_level++; // increase timer
+                }
+        // 00 -> 10 or 11 -> 01 rotation check
+        if(EncNow == 0x02 && EncOld == 0x00 || EncNow == 0x01 && EncOld == 0x03 )
+        {
+                EncChk = EncNow;
+        }
+        // 00 -> 10 -> 11 or 11 -> 01 -> 00 counter-clockwise confirmed
+        if(EncNow == 0x03 && EncOld == 0x00 && EncChk == 0x02 || EncNow == 0x00 && EncOld == 0x03 && EncChk == 0x01 )
+        {
+                    Enc1 =0;
+                        tm_keydelay = L_TM_KEYDELAY;            // start delay
+					wat_level--;  // decrease power level
+					time_level--; // decrease timer				 
 	{
 		EncChk = EncNow;
 	}	
-	// 00 -> 01 -> 11   °¢ 11 -> 10 -> 00  ’˝œÚ–˝◊™»∑∂®
+	// 00 -> 01 -> 11   „ÄÅ 11 -> 10 -> 00  Ê≠£ÂêëÊóãËΩ¨Á°ÆÂÆö
 	if(EncNow == 0x03 && EncOld == 0x00 && EncChk == 0x01 || EncNow == 0x00 && EncOld == 0x03 && EncChk == 0x02 )
 	{
 		EncOld = EncNow;
@@ -244,7 +243,7 @@ void touch_key_cvt(void)
 		if(Enc1 == 1)
 		{
 			Enc1 =0;
-			tm_keydelay = L_TM_KEYDELAY; 		//—” ±
+			tm_keydelay = L_TM_KEYDELAY; 		//Âª∂Êó∂
 //----------------------------
 			
 			if(status == open)
@@ -253,13 +252,13 @@ void touch_key_cvt(void)
 			 {
 				fifowrite(0x07);
 				if(wat_level<8)
-					wat_level++;  // …˝µµ
+					wat_level++;  // ÂçáÊ°£
 			 }					
 			 if(knob_time)
 			 {
 				fifowrite(0x05);					 
 				if(time_level<60)
-					time_level++; // …˝µµ			 
+					time_level++; // ÂçáÊ°£			 
 			 }				
 			}
 //----------------------------
@@ -270,12 +269,12 @@ void touch_key_cvt(void)
 		}
 	}
 		
-	// 00 -> 10 °¢ 11 -> 01   ∑¥œÚ–˝◊™≈–∂œ 
+	// 00 -> 10 „ÄÅ 11 -> 01   ÂèçÂêëÊóãËΩ¨Âà§Êñ≠ 
 	if(EncNow == 0x02 && EncOld == 0x00 || EncNow == 0x01 && EncOld == 0x03 )
 	{
 		EncChk = EncNow;
 	}
-	// 00 -> 10 -> 11  °¢ 11 -> 01 -> 00  ∑¥œÚ–˝◊™»∑∂®
+	// 00 -> 10 -> 11  „ÄÅ 11 -> 01 -> 00  ÂèçÂêëÊóãËΩ¨Á°ÆÂÆö
 	if(EncNow == 0x03 && EncOld == 0x00 && EncChk == 0x02 || EncNow == 0x00 && EncOld == 0x03 && EncChk == 0x01 )
 	{
 		EncOld = EncNow;
@@ -284,7 +283,7 @@ void touch_key_cvt(void)
 		if(Enc1 == 1)
 		{
 			Enc1 =0;
-			tm_keydelay = L_TM_KEYDELAY; 		//—” ±
+			tm_keydelay = L_TM_KEYDELAY; 		//Âª∂Êó∂
 //----------------------------
 			
 			if(status == open)
@@ -293,13 +292,13 @@ void touch_key_cvt(void)
 			 {
 				fifowrite(0x07);
 				if(wat_level>=1)
-					wat_level--;  // Ωµµµ
+					wat_level--;  // ÈôçÊ°£
 			 }					
 			 if(knob_time)
 			 {
 				fifowrite(0x05);
 				if(time_level>=1)
-					time_level--; // Ωµµµ				 
+					time_level--; // ÈôçÊ°£				 
 			 }
 			}
 //----------------------------
