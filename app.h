@@ -14,9 +14,11 @@ typedef enum {
 } AppState;
 
 // Three-level menu, Second level: Status
-#define open    0x01
-#define lock    0x08
-#define erro    0x06
+typedef enum {
+    STATUS_OPEN  = 0x01,
+    STATUS_LOCK  = 0x08,
+    STATUS_ERROR = 0x06
+} DeviceStatus;
 
 // Three-level menu, Third level: Function
 typedef enum {
@@ -34,6 +36,12 @@ typedef enum {
     CMD_COOK   = 0x4D,
     CMD_BOIL   = 0x4F
 } I2CCommand;
+
+typedef enum {
+    ERROR_NONE = 0,
+    ERROR_I2C,
+    ERROR_MAIN
+} ErrorType;
 
 //
 #define plus   0x09
@@ -54,8 +62,9 @@ extern unsigned char write;
 extern volatile AppState sw;
 extern volatile unsigned char buztime_500msF;
 extern unsigned char mode;
-extern unsigned char status;
+extern DeviceStatus status;
 extern unsigned char err_num;
+extern volatile ErrorType current_error;
 
 //extern unsigned char bflag;
 extern unsigned char childLockActive;	
@@ -63,7 +72,7 @@ extern unsigned char childLockActive;
 extern unsigned char wat_level;
 extern volatile unsigned char time_level;
 
-extern unsigned int wat_tab[];
+extern unsigned int idata wat_tab[];
 	
 extern volatile unsigned char knob_time;
 extern volatile unsigned char disp_chan_tm1;

@@ -58,6 +58,14 @@ volatile uint8_t tm_keydelay = 0;   // encoder delay counter
 //#define L_TM_KEYLONG     2000       // x * 500us
 #define L_TM_KEYDELAY    60         // 80 * 1ms
 
+static void send_key_command(uint8_t cmd)
+{
+    if(sw==APP_STATE_STANDBY && status!=STATUS_ERROR)
+        buzzerOn();
+    
+    fifowrite(cmd);
+}
+
 //--------------------------------------------------------------------------
 //Subroutine: touch_key_cvt
 //Function	: Sonix key de-bounce routine
@@ -118,57 +126,37 @@ void touch_key_cvt(void)
 			}
 		}			
 		
-		if(key_inbuf & KEY_NUM2)				
-		{
-			if(key_cvtbuf & KEY_NUM2)			// button 2
-			{
-				if(sw==APP_STATE_STANDBY)
-				{
-					if(status!=erro)
-						buzzerOn();
-				}
-        fifowrite(0x05);
-			}
-		}				
+		if(key_inbuf & KEY_NUM2)
+    {
+      if(key_cvtbuf & KEY_NUM2)
+      {
+        send_key_command(0x05);
+      }
+    }				
 
-		if(key_inbuf & KEY_NUM3)				
-		{
-			if(key_cvtbuf & KEY_NUM3)			// button 3
-			{
-				if(sw==APP_STATE_STANDBY)
-				{
-					if(status!=erro)
-						buzzerOn();
-				}
-        fifowrite(0x04);
-			}
-		}		
+		if(key_inbuf & KEY_NUM3)
+    {
+      if(key_cvtbuf & KEY_NUM3)
+      {
+        send_key_command(0x04);
+      }
+    }	
 
-		if(key_inbuf & KEY_NUM4)				
-		{
-			if(key_cvtbuf & KEY_NUM4)			// button 4
-			{
-				if(sw==APP_STATE_STANDBY)
-				{
-					if(status!=erro)
-						buzzerOn();
-				}
-        fifowrite(0x03);
-			}
-		}		
+		if(key_inbuf & KEY_NUM4)
+    {
+      if(key_cvtbuf & KEY_NUM4)
+      {
+        send_key_command(0x03);
+      }
+    }	
 
-		if(key_inbuf & KEY_NUM5)				
-		{
-			if(key_cvtbuf & KEY_NUM5)			// button 5
-			{		
-				if(sw==APP_STATE_STANDBY)
-				{
-					if(status!=erro)
-						buzzerOn();
-				}
-        fifowrite(0x02);
-			}
-		}		
+		if(key_inbuf & KEY_NUM5)
+    {
+      if(key_cvtbuf & KEY_NUM5)
+      {
+        send_key_command(0x02);
+      }
+    }	
 
 		if(key_inbuf & KEY_NUM6)				
 		{
@@ -201,7 +189,7 @@ void touch_key_cvt(void)
 				  buzzerOn();
         
 				childLockActive = !childLockActive;
-				status=lock;			
+				status=STATUS_LOCK;	
 			}
 		}
 	 }
@@ -248,7 +236,7 @@ void touch_key_cvt(void)
 			tm_keydelay = L_TM_KEYDELAY; 		// start delay
 //----------------------------
 			
-			if(status == open)
+			if(status == STATUS_OPEN)
 			{
        if(!knob_time)
 			 {
@@ -288,7 +276,7 @@ void touch_key_cvt(void)
 			tm_keydelay = L_TM_KEYDELAY; 		// start delay
 //----------------------------
 			
-			if(status == open)
+			if(status == STATUS_OPEN)
 			{	
        if(!knob_time)
 			 {
@@ -311,7 +299,5 @@ void touch_key_cvt(void)
 		}
 		
 	}			 
-	 
-	 
 	 
 }	

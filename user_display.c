@@ -90,74 +90,33 @@ void lcd_bit()
 	
 }
 
-void display()
+typedef void (*ComOutFunc)(void);
+static void com1_low(void){ COM1_OUT_LOW; }
+static void com2_low(void){ COM2_OUT_LOW; }
+static void com3_low(void){ COM3_OUT_LOW; }
+static void com4_low(void){ COM4_OUT_LOW; }
+static void com5_low(void){ COM5_OUT_LOW; }
+static ComOutFunc com_funcs[LCD_SEG_NUM] = {com1_low, com2_low, com3_low, com4_low, com5_low};
+
+static void set_segments(uint8_t seg)
 {
-	COM_ALL_INPUT();           //ALL INPUT
-	if( ++scan_num >= 5 )      //4 bits
-		scan_num = 0;	
-	switch(scan_num)
-	{	
-		case 0:                    //bit 1
-			  
-				if(LCDB[0] & 0x01)	        {LED_SEGA_HIGH;}		// COM1
-				if(LCDB[0] & 0x02)	        {LED_SEGB_HIGH;}						
-				if(LCDB[0] & 0x04)	        {LED_SEGC_HIGH;}		
-				if(LCDB[0] & 0x08)	        {LED_SEGD_HIGH;}		
-				if(LCDB[0] & 0x10)	        {LED_SEGE_HIGH;}		
-				if(LCDB[0] & 0x20)	        {LED_SEGF_HIGH;}		
-				if(LCDB[0] & 0x40)	        {LED_SEGG_HIGH;}	
-				if(LCDB[0] & 0x80)	        {LED_SEGDP_HIGH;}					
-				COM1_OUT_LOW;
-		break;
-		
-		case 1:                    //bit 2
-			 
-				if(LCDB[1] & 0x01)	        {LED_SEGA_HIGH;}		// COM2
-				if(LCDB[1] & 0x02)	        {LED_SEGB_HIGH;}						
-				if(LCDB[1] & 0x04)	        {LED_SEGC_HIGH;}		
-				if(LCDB[1] & 0x08)	        {LED_SEGD_HIGH;}		
-				if(LCDB[1] & 0x10)	        {LED_SEGE_HIGH;}		
-				if(LCDB[1] & 0x20)	        {LED_SEGF_HIGH;}		
-				if(LCDB[1] & 0x40)	        {LED_SEGG_HIGH;}	
-				if(LCDB[1] & 0x80)	        {LED_SEGDP_HIGH;}						
-			  COM2_OUT_LOW;
-		break;
+    if(seg & 0x01) LED_SEGA_HIGH;
+    if(seg & 0x02) LED_SEGB_HIGH;
+    if(seg & 0x04) LED_SEGC_HIGH;
+    if(seg & 0x08) LED_SEGD_HIGH;
+    if(seg & 0x10) LED_SEGE_HIGH;
+    if(seg & 0x20) LED_SEGF_HIGH;
+    if(seg & 0x40) LED_SEGG_HIGH;
+    if(seg & 0x80) LED_SEGDP_HIGH;
+}
 
-		case 2:                    //bit 3
-			  
-				if(LCDB[2] & 0x01)	        {LED_SEGA_HIGH;}		// COM3
-				if(LCDB[2] & 0x02)	        {LED_SEGB_HIGH;}						
-				if(LCDB[2] & 0x04)	        {LED_SEGC_HIGH;}		
-				if(LCDB[2] & 0x08)	        {LED_SEGD_HIGH;}		
-				if(LCDB[2] & 0x10)	        {LED_SEGE_HIGH;}		
-				if(LCDB[2] & 0x20)	        {LED_SEGF_HIGH;}		
-				if(LCDB[2] & 0x40)	        {LED_SEGG_HIGH;}	
-				if(LCDB[2] & 0x80)	        {LED_SEGDP_HIGH;}						
-				COM3_OUT_LOW;
-		break;
-
-		case 3:                    //bit 4
-			  
-				if(LCDB[3] & 0x01)	        {LED_SEGA_HIGH;}		// COM4
-				if(LCDB[3] & 0x02)	        {LED_SEGB_HIGH;}						
-				if(LCDB[3] & 0x04)	        {LED_SEGC_HIGH;}		
-				if(LCDB[3] & 0x08)	        {LED_SEGD_HIGH;}		
-				if(LCDB[3] & 0x10)	        {LED_SEGE_HIGH;}		
-				if(LCDB[3] & 0x20)	        {LED_SEGF_HIGH;}		
-				if(LCDB[3] & 0x40)	        {LED_SEGG_HIGH;}	
-				if(LCDB[3] & 0x80)	        {LED_SEGDP_HIGH;}						
-				COM4_OUT_LOW;
-		break;	
-		
-		case 4:                    //
-
-		    if(LCDB[4] & 0x01)	        {LED_SEGA_HIGH;}		// COM5			
-				if(LCDB[4] & 0x02)	        {LED_SEGB_HIGH;}
-				if(LCDB[4] & 0x04)	        {LED_SEGC_HIGH;}		
-				if(LCDB[4] & 0x08)	        {LED_SEGD_HIGH;}		
-				if(LCDB[4] & 0x10)	        {LED_SEGE_HIGH;}		
-			  COM5_OUT_LOW;				
-		break;			
-  }
+void display(void)
+{
+	COM_ALL_INPUT();                //ALL INPUT
+	if( ++scan_num >= LCD_SEG_NUM ) //4 bits
+		scan_num = 0;
+  
+	set_segments(LCDB[scan_num]);
+  com_funcs[scan_num]();
 }
 

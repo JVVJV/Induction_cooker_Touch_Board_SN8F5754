@@ -5,9 +5,6 @@
 #include "iic.h"
 #include "user_isr.h"
 
-
-
-
 unsigned char fifobuf[KEY_FIFO_SIZE];
 unsigned char read=0;
 unsigned char write=0;
@@ -17,10 +14,11 @@ unsigned char write=0;
 volatile unsigned char buztime_500msF=0;
 
 volatile AppState sw = APP_STATE_CLOSE;
-unsigned char status = open;
+DeviceStatus status = STATUS_OPEN;
 unsigned char mode = MODE_NOTASK;
 unsigned char err_num = 0;
-
+volatile ErrorType current_error = ERROR_NONE;
+static unsigned char from_error = 0;
 
 unsigned char set_watt;
 
@@ -31,8 +29,8 @@ unsigned char childLockActive=0;
 unsigned char wat_level=4;
 volatile unsigned char time_level=10;
 
-unsigned char send_wat_tab[]={0x44,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f};
-unsigned int wat_tab[]={200,500,800,1000,1300,1600,1800,2000,2200};
+unsigned char idata send_wat_tab[]={0x44,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f};
+unsigned int idata wat_tab[]={200,500,800,1000,1300,1600,1800,2000,2200};
 
 
 //unsigned char disp_time_tab;
@@ -45,12 +43,12 @@ volatile unsigned char disp_delay = 0;
 
 unsigned char  temp;
 
-static void process_i2c_command(unsigned char *from_error);
+static void process_i2c_command(void);
 static void handle_open(void);
 static void handle_lock(void);
-static void handle_error(unsigned char *from_error, unsigned char prev_mode);
-static void handle_standby(unsigned char *prev_mode, unsigned char *from_error);
-static void handle_close(unsigned char *from_error);
+static void handle_error(unsigned char prev_mode);
+static void handle_standby(unsigned char *prev_mode);
+static void handle_close(void);
 
 // Returns 1 if FIFO is empty, 0 otherwise
 unsigned char fifo_empty(void) {
@@ -116,23 +114,22 @@ void buzzerOff()
 void app()
 {
 	static unsigned char prev_mode = 0;
-	static unsigned char from_error = 0;
 
 	buzzerOff();
 
-  process_i2c_command(&from_error);
+  process_i2c_command();
  	
   disp_time();
 	
   switch(sw)
   {
       case APP_STATE_STANDBY:
-          handle_standby(&prev_mode, &from_error);
+          handle_standby(&prev_mode);
           break;
 
       case APP_STATE_CLOSE:
       default:
-          handle_close(&from_error);
+          handle_close();
           break;
   }
 
@@ -149,22 +146,23 @@ void disp_time()
 }
 
 
-static void process_i2c_command(unsigned char *from_error)
+static void process_i2c_command(void)
 {
     if(I2CErrorCode != I2C_ERR_NONE){
         err_num = 9;
-        status = erro;
+        status = STATUS_ERROR;
+        current_error = ERROR_I2C;
         I2CErrorCode = I2C_ERR_NONE;
     }
   
-    if (status == open && !(*from_error)) {
+    if (status == STATUS_OPEN && !from_error) {
         if (!fifo_empty()) {
             mode = fiforead();
         }
     }
     
-    if (*from_error) {
-        *from_error = 0;
+    if (from_error) {
+        from_error = 0;
     }
 }
 
@@ -228,86 +226,90 @@ static void handle_lock(void)
     bit_number = lock_n;
 
     if(MainMegCode == 0x78 || MainMegCode == 0x74)
-        status = erro;
+        status = STATUS_ERROR;
 
     if(childLockActive == 0)
     {
-        status = open;
+        status = STATUS_OPEN;
         bit_number = temp;
     }
 
     fifowrite(0x00);
 }
 
-static void handle_error(unsigned char *from_error, unsigned char prev_mode)
+static void handle_error(unsigned char prev_mode)
 {
     bit_number = Ero_n;
   
-    if(err_num == 9 && I2CErrorCode == I2C_ERR_NONE)
+    if(current_error == ERROR_I2C && I2CErrorCode == I2C_ERR_NONE)
     {
       err_num = 0;
-      status = open;
+      status = STATUS_OPEN;
       mode = prev_mode;
-      *from_error = 1;
+      from_error = 1;
+      current_error = ERROR_NONE;
       return;
     }
   
     if( MainMegCode == 0x70 )
     {			
       err_num = 0;
-      status = open;      // exit error state
-      mode = prev_mode;   // restore previous mode
-      *from_error = 1;    // mark return from error          
+      status = STATUS_OPEN; // exit error state
+      mode = prev_mode;     // restore previous mode
+      from_error = 1;       // mark return from error 
+      current_error = ERROR_NONE;      
     }
 }
 
-static void handle_standby(unsigned char *prev_mode, unsigned char *from_error)
+static void handle_standby(unsigned char *prev_mode)
 {
-    if(status != open && status != lock)
+    if(status != STATUS_OPEN  && status != STATUS_LOCK)
         MainWatCode = CMD_NONE;
 
-    if(I2CErrorCode != I2C_ERR_NONE && status != erro)
+    if(I2CErrorCode != I2C_ERR_NONE && status != STATUS_ERROR)
     {
         *prev_mode = mode;
         err_num = 9;
-        status = erro;
+        status = STATUS_ERROR;
+        current_error = ERROR_I2C;
         buzzerOn();
     }
       
-    if(status != erro)
+    if(status != STATUS_ERROR)
     {
         if(MainMegCode != 0x70)
         {
             *prev_mode = mode;
             err_num = (MainMegCode - 0x70);
-            status = erro;
+            status = STATUS_ERROR;
+            current_error = ERROR_MAIN;
             buzzerOn(); // Beep once time when error occurs
         }
     }
 
     switch(status)
     {
-        case open:
+        case STATUS_OPEN:
             handle_open();
             break;
 
-        case lock:
+        case STATUS_LOCK:
             handle_lock();
             break;
 
-        case erro:
-            handle_error(from_error, *prev_mode);
+        case STATUS_ERROR:
+            handle_error(*prev_mode);
             break;
     }
 }
 
-static void handle_close(unsigned char *from_error)
+static void handle_close(void)
 {
     bit_number = close_n;
     knob_time = 0;
-    *from_error = 0;
+    from_error = 0;
     MainWatCode = CMD_NONE;
-    status = open;
+    status = STATUS_OPEN;
     mode = MODE_NOTASK;
 }
 
