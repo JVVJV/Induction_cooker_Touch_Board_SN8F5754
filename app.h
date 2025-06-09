@@ -53,8 +53,7 @@ typedef enum {
 extern unsigned char keylong_1ms;
 extern unsigned char keylong_1msF;
 
-extern unsigned char fifobuf[KEY_FIFO_SIZE];
-//extern unsigned char keybuf;
+extern unsigned char key_fifo[KEY_FIFO_SIZE];
 
 extern unsigned char read;
 extern unsigned char write;
@@ -72,7 +71,8 @@ extern unsigned char childLockActive;
 extern unsigned char wat_level;
 extern volatile unsigned char time_level;
 
-extern unsigned int idata wat_tab[];
+extern const unsigned int code power_table[];
+extern const unsigned char code power_cmd_table[];
 	
 extern volatile unsigned char knob_time;
 extern volatile unsigned char disp_chan_tm1;

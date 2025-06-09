@@ -33,8 +33,8 @@ void lcd_bit()
 		break;
 		
 		case watt_n:
-			LCDB[0] = LCD_TabNum[wat_tab[wat_level]/1000];
-		  LCDB[1] = LCD_TabNum[wat_tab[wat_level]/100%10];
+			LCDB[0] = LCD_TabNum[power_table[wat_level]/1000];
+		  LCDB[1] = LCD_TabNum[power_table[wat_level]/100%10];
 		  LCDB[2] = LCD_TabNum[0];
 		  LCDB[3] = LCD_TabNum[0];		
 		  LCDB[4] = LED_B;	
@@ -80,8 +80,8 @@ void lcd_bit()
 				disp_chan_tm1 = 2;
 				disp_chan_tm2 = 0xFF;
 				
-				LCDB[0] = LCD_TabNum[wat_tab[wat_level]/1000];
-				LCDB[1] = LCD_TabNum[wat_tab[wat_level]/100%10];
+				LCDB[0] = LCD_TabNum[power_table[wat_level]/1000];
+				LCDB[1] = LCD_TabNum[power_table[wat_level]/100%10];
 				LCDB[2] = LCD_TabNum[0];
 				LCDB[3] = LCD_TabNum[0];				
 			}	

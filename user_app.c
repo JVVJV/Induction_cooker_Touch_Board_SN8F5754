@@ -5,7 +5,7 @@
 #include "iic.h"
 #include "user_isr.h"
 
-unsigned char fifobuf[KEY_FIFO_SIZE];
+unsigned char key_fifo[KEY_FIFO_SIZE];
 unsigned char read=0;
 unsigned char write=0;
 
@@ -29,9 +29,8 @@ unsigned char childLockActive=0;
 unsigned char wat_level=4;
 volatile unsigned char time_level=10;
 
-unsigned char idata send_wat_tab[]={0x44,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f};
-unsigned int idata wat_tab[]={200,500,800,1000,1300,1600,1800,2000,2200};
-
+const unsigned char code power_cmd_table[]={0x44,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f};
+const unsigned int code power_table[]={200,500,800,1000,1300,1600,1800,2000,2200};
 
 //unsigned char disp_time_tab;
 
@@ -60,7 +59,7 @@ unsigned char fiforead(void)
 {
     unsigned char Rdata;
   
-    Rdata = fifobuf[read];
+    Rdata = key_fifo[read];
     read++;
 
     // Wrap around if the read index reaches the end of the buffer
@@ -91,7 +90,7 @@ void fifowrite(unsigned char num)
             read = 0;
     }
 
-    fifobuf[write] = num;
+    key_fifo[write] = num;
     write = next;
 }
 
@@ -205,7 +204,7 @@ static void handle_open(void)
       
       case MODE_ADJUST:
         bit_number = watt_n;	
-        MainWatCode = send_wat_tab[wat_level];
+        MainWatCode = power_cmd_table[wat_level];
       break;
       
       case MODE_NOTASK:
@@ -261,7 +260,7 @@ static void handle_error(unsigned char prev_mode)
     }
 }
 
-static void handle_standby(unsigned char *prev_mode)
+static void update_error_status(unsigned char *prev_mode)
 {
     if(status != STATUS_OPEN  && status != STATUS_LOCK)
         MainWatCode = CMD_NONE;
@@ -274,8 +273,7 @@ static void handle_standby(unsigned char *prev_mode)
         current_error = ERROR_I2C;
         buzzerOn();
     }
-      
-    if(status != STATUS_ERROR)
+    else if(status != STATUS_ERROR)
     {
         if(MainMegCode != 0x70)
         {
@@ -286,7 +284,15 @@ static void handle_standby(unsigned char *prev_mode)
             buzzerOn(); // Beep once time when error occurs
         }
     }
+}
 
+static void handle_standby(unsigned char *prev_mode)
+{
+    if(status != STATUS_OPEN  && status != STATUS_LOCK)
+        MainWatCode = CMD_NONE;
+
+    update_error_status(prev_mode);
+  
     switch(status)
     {
         case STATUS_OPEN:
