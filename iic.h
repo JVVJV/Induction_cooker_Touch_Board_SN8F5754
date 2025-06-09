@@ -2,6 +2,12 @@
 #define  _IIC_H_
 
 
+// I2C enable mask
+#define mskI2CCON_I2C_ENABLE  0x40
+// timeout limit for I2C communication
+#define I2C_TIMEOUT_LIMIT     1000
+
+
 //-----------------------------------------------------------------------------------------------------------------//
 #define I2C_SLAVE_ADDR		            0xAA 	 // I2C Slave address
 // Master Transmitter/Receiver
@@ -67,8 +73,14 @@ enum
 	I2C_SlaveMax,
 };
 
+// I2C error code enum
+enum I2C_ErrorCode {
+    I2C_ERR_NONE = 0,
+    I2C_ERR_TIMEOUT,
+    I2C_ERR_NO_RESP,
+};
 
-
+extern volatile unsigned char I2CErrorCode;
 
 
 #endif

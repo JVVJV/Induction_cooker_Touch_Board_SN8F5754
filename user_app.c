@@ -151,11 +151,18 @@ void disp_time()
 
 static void process_i2c_command(unsigned char *from_error)
 {
+    if(I2CErrorCode != I2C_ERR_NONE){
+        err_num = 9;
+        status = erro;
+        I2CErrorCode = I2C_ERR_NONE;
+    }
+  
     if (status == open && !(*from_error)) {
         if (!fifo_empty()) {
             mode = fiforead();
         }
     }
+    
     if (*from_error) {
         *from_error = 0;
     }
@@ -236,6 +243,15 @@ static void handle_error(unsigned char *from_error, unsigned char prev_mode)
 {
     bit_number = Ero_n;
   
+    if(err_num == 9 && I2CErrorCode == I2C_ERR_NONE)
+    {
+      err_num = 0;
+      status = open;
+      mode = prev_mode;
+      *from_error = 1;
+      return;
+    }
+  
     if( MainMegCode == 0x70 )
     {			
       err_num = 0;
@@ -250,6 +266,14 @@ static void handle_standby(unsigned char *prev_mode, unsigned char *from_error)
     if(status != open && status != lock)
         MainWatCode = CMD_NONE;
 
+    if(I2CErrorCode != I2C_ERR_NONE && status != erro)
+    {
+        *prev_mode = mode;
+        err_num = 9;
+        status = erro;
+        buzzerOn();
+    }
+      
     if(status != erro)
     {
         if(MainMegCode != 0x70)
