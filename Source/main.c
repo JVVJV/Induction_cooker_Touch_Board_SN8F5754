@@ -21,6 +21,7 @@
 #include "app.h"
 #include "disp.h"
 #include "iic.h"
+#include "user_isr.h"
 
 /*------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -119,6 +120,13 @@ void main(void)
 	while(1)
 	{
 		WDTR = 0X5A;					//clear watch dog timer
+    
+    if(IntGnd.fTime1ms)
+    {
+      IntGnd.fTime1ms = 0;
+      I2C_TimeoutTick();
+    }
+    
 		scan_touch_key();			//touch key scan routine
 		touch_key_cvt();
 

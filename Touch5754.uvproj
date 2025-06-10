@@ -426,16 +426,6 @@
               <FileType>1</FileType>
               <FilePath>.\user_display.c</FilePath>
             </File>
-            <File>
-              <FileName>iic.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\iic.h</FilePath>
-            </File>
-            <File>
-              <FileName>user_isr.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\user_isr.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

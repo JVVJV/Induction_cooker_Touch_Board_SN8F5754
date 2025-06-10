@@ -5,7 +5,7 @@
 // I2C enable mask
 #define mskI2CCON_I2C_ENABLE  0x40
 // timeout limit for I2C communication
-#define I2C_TIMEOUT_LIMIT     1000
+#define I2C_TIMEOUT_LIMIT     500
 
 
 //-----------------------------------------------------------------------------------------------------------------//
@@ -52,6 +52,7 @@ extern unsigned char MainMegCode;
 
 void IIC_Init();
 void I2C_DataCom(void);
+void I2C_TimeoutTick(void);
 
 // I2C_RECV
 enum 
