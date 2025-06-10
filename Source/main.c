@@ -23,86 +23,21 @@
 #include "iic.h"
 #include "user_isr.h"
 
-/*------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-V1.0	2025/1/14	
-						初版 app内可以调用模式，未加入iic通讯，蜂鸣器声音有问题，童锁模式所在的case位置不对；
-						
-						INI_Ver = V43
-                        EXE_Ver = V27
-						CheckSum = 0x08A5
-						Program Size: data=68.0 xdata=732 code=6573
-//-----------------------------------------------------------------------------
-V2.1	2025/1/17		
-                        加入IIC通讯协议，将样品通讯协议，写入新的触摸板上；未加入蜂鸣器声音；上电测试，可以开机启动
-						
-						CheckSum = 0x7EC9
-						Program Size: data=79.0 xdata=732 code=6831
-						
-//-----------------------------------------------------------------------------
-V2.2	2025/1/20		
-                        上电测试，可以开机启动，可以加热，可以关闭。目前功能：三个按键对应三个功率档位，分别是：火锅、炒菜、烧水。蜂鸣器声音有点小
-						
-						CheckSum = 0x6BC8
-						Program Size: data=81.0 xdata=732 code=6851
-						
-//-----------------------------------------------------------------------------
-V2.3	2025/2/21		
-                        添加无锅检测功能；添加童锁功能；
-						
-						CheckSum = 0x95FD
-						Program Size: data=86.2 xdata=774 code=8733
-						
-//-----------------------------------------------------------------------------
-V2.4	2025/2/26		
-                        添加童锁和旋钮调节功能；但童锁功能锁定后仍能调节，且不能关机，目前准备将app分三层，开关-状态-功能
-						
-						CheckSum = 0x95FD
-						Program Size: data=86.2 xdata=774 code=8733
-						
-//-----------------------------------------------------------------------------
-V2.5	2025/3/4		
-                        修改代码，修改2.4版本的问题；
-						
-						CheckSum = 0x97C0
-						Program Size: data=111.3 xdata=774 code=9144
-//-----------------------------------------------------------------------------
-V2.6	2025/3/11		
-                        增加旋钮调节功能，可以通过旋钮调节功率；添加定时功能，可定时60分钟；
-						
-						CheckSum = 0xD675
-						Program Size: data=133.3 xdata=774 code=9479
-//-----------------------------------------------------------------------------
-V2.7	2025/3/12		
-                        修改定时功能，在定时功能下调节旋钮，显示定时切换当前功率和剩余定时时间；
-						
-						CheckSum = 0xBFD7
-						Program Size: data=133.3 xdata=774 code=9495
-//-----------------------------------------------------------------------------
-V2.8	2025/3/13		
-                        修改定时功能，在调节时间的状态下，不会自动切换当前功率和剩余定时时间；若4s内无继续调节操作，开始自动切换当前功率和剩余定时时间；
-						
-						CheckSum = 0xF0B4
-						Program Size: data=142.3 xdata=774 code=9476
-//-----------------------------------------------------------------------------
-V2.8.1	2025/3/13		
-                        增加在无锅报警状态下，放上锅继续工作；但是显示会迅速跳转，可能是因为接收到了有锅的信号；
-						
-						CheckSum = 0xF521
-						Program Size: data=142.3 xdata=774 code=9452
-//-----------------------------------------------------------------------------
-V2.8.2	2025/3/14		
-                        加入蜂鸣器，按下按键有声音；
-						
-						CheckSum = 0xF36C
-						Program Size: data=142.3 xdata=774 code=9473
-//-----------------------------------------------------------------------------
-V3.0	2025/3/21		
-                        修改代码，功能基本还原；
-						
-						CheckSum = 0x94AE
-						Program Size: data=145.3 xdata=774 code=9604
-------------------------------------------------------------------------------------------*/
+/*
+ * Version History
+ * V1.0    2025/01/14  Initial version; IIC not integrated and buzzer unstable.
+ * V2.1    2025/01/17  Added IIC protocol support; system boots successfully.
+ * V2.2    2025/01/20  Power-on test completed; supports three power levels.
+ * V2.3    2025/02/21  Added pot detection and child lock functions.
+ * V2.4    2025/02/26  Added child lock and knob control; planning layered app design.
+ * V2.5    2025/03/04  Fixed issues from version 2.4.
+ * V2.6    2025/03/11  Added knob power control and 60-minute timer.
+ * V2.7    2025/03/12  Improved timer display during adjustments.
+ * V2.8    2025/03/13  Auto-scroll timer display after 4 seconds of idle.
+ * V2.8.1  2025/03/13  Continues heating when pot is returned during alarm.
+ * V2.8.2  2025/03/14  Added buzzer feedback on key press.
+ * V3.0    2025/03/21  Code cleanup and feature restoration.
+ */
 
 
 
