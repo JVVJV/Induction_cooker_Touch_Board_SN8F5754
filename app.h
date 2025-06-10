@@ -50,8 +50,8 @@ typedef enum {
 
 #define KEY_FIFO_SIZE 8
 
-extern unsigned char keylong_1ms;
-extern unsigned char keylong_1msF;
+extern volatile unsigned char keylong_1ms;
+extern volatile unsigned char keylong_1msF;
 
 extern unsigned char key_fifo[KEY_FIFO_SIZE];
 

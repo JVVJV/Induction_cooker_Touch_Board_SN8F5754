@@ -17,7 +17,7 @@ typedef struct{
 
 extern volatile IntGnd_s IntGnd; 
 
-extern unsigned char set_time;
+extern volatile unsigned char set_time;
 extern volatile unsigned char tm_keydelay;
 
 #endif

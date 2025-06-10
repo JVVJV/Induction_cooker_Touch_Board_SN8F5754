@@ -21,6 +21,15 @@ unsigned char MainWatCode=0x00;
 volatile unsigned char I2CErrorCode = I2C_ERR_NONE;
 static unsigned int I2CTimeoutCnt = 0;
 
+static uint8_t calc_checksum(const uint8_t *buf, uint8_t len)
+{
+    uint8_t i, sum = 0;
+
+    for(i = 0; i < len; i++)
+        sum += buf[i];
+
+    return 0xFF - sum;
+}
 
 void IIC_Init()
 {
@@ -64,11 +73,8 @@ void I2C_DataCom(void)
   fI2c_RecvOk =0;
   
   // verify checksum
-  for(i=0,CheckSum=0;i<2;i++)
-  {
-    CheckSum += MasterBuf[i];
-  }
-  CheckSum = 0xFF - CheckSum;
+  CheckSum = calc_checksum(MasterBuf, I2C_MasterCs);
+
   if(CheckSum==MasterBuf[I2C_MasterCs])
   {
     MainMegCode = MasterBuf[I2C_Addr];
@@ -81,13 +87,9 @@ void I2C_DataCom(void)
     SlaveBuf[i] = MainWatCode;	
   }
 
-  for(i=0,CheckSum=0;i<I2C_SlaveCS;i++) // compute checksum
-  {
-    CheckSum += SlaveBuf[i];
-  }
-  CheckSum = 0xFF - CheckSum;
-  SlaveBuf[I2C_SlaveCS] = CheckSum;	
-	
+  CheckSum = calc_checksum(SlaveBuf, I2C_SlaveCS);
+  SlaveBuf[I2C_SlaveCS] = CheckSum;
+  
 }
 
 
