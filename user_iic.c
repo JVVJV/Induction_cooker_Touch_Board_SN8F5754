@@ -43,13 +43,13 @@ void I2C_DataCom(void)
   
   if(!fI2c_RecvOk)
   {
-    if(++I2CTimeoutCnt > I2C_TIMEOUT_LIMIT)
-    {
-      I2CTimeoutCnt = 0;
-      I2CErrorCode = I2C_ERR_TIMEOUT;
-      I2CCON &= ~mskI2CCON_I2C_ENABLE;
-      I2CCON |= mskI2CCON_I2C_ENABLE;
-    }
+//    if(++I2CTimeoutCnt > I2C_TIMEOUT_LIMIT)
+//    {
+//      I2CTimeoutCnt = 0;
+//      I2CErrorCode = I2C_ERR_TIMEOUT;
+//      I2CCON &= ~mskI2CCON_I2C_ENABLE;
+//      I2CCON |= mskI2CCON_I2C_ENABLE;
+//    }
     return;
   }
 
@@ -101,6 +101,8 @@ void isr_i2c_slave (void) interrupt ISRI2c
 			break;	
 		}			
 		case I2C_ST_DATA_ACK:		
+    case I2C_ST_DATA_NACK:  
+    case I2C_ST_LAST_DATA:
 		{
 			I2CDAT = SlaveBuf[SlaveBufLen++];	
 			break;
@@ -121,13 +123,20 @@ void isr_i2c_slave (void) interrupt ISRI2c
 				fI2c_RecvOk = 1;
 			break;
 		}
-		
+    case I2C_SR_STOP:
+    {
+      MasterBufLen = 0;
+      SlaveBufLen = 0;
+      I2CCON &= 0xCF;     // Clear STA & STOP
+      break;
+    }
+    
     default:
     {
       MasterBufLen = 0;
       SlaveBufLen = 0;
       I2CErrorCode = I2C_ERR_NO_RESP;
-      I2CCON &= 0xCF;                   // Clear STA & STOP			
+      I2CCON &= 0xCF;                   // Clear STA & STOP
       I2CCON &= ~mskI2CCON_I2C_ENABLE;
       I2CCON |= mskI2CCON_I2C_ENABLE;
       break;
